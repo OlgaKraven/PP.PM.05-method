@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Методические рекомендации — SDLC, архитектура, UML, тестирование</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --text:#111; --muted:#555; --border:#cfd6e4; --bg:#fff; --accent:#0b5cff; }
+    html,body{background:var(--bg);color:var(--text);}
+    body{margin:0;font-family:"Inter","Segoe UI",Roboto,Arial,Helvetica,sans-serif;line-height:1.6;font-size:16px;}
+    .page{max-width:960px;margin:32px auto 96px;padding:0 20px;}
+    h1,h2,h3,h4{line-height:1.25;margin:1.2em 0 .5em;}
+    h1{font-size:2rem;}
+    h2{font-size:1.5rem;border-left:4px solid var(--accent);padding-left:.6rem;}
+    h3{font-size:1.25rem;color:var(--muted);}
+    p{margin:.6em 0;}
+    hr.sep{border:0;height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:20px 0;}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;}
+    pre,code,kbd,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;}
+    pre{background:#f7f9fc;border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow:auto;margin:.8rem 0 1rem;white-space:pre;}
+    table{border-collapse:collapse;width:100%;margin:.6rem 0 1rem;table-layout:auto;}
+    th,td{border:1px solid var(--border);padding:.55rem .6rem;vertical-align:top;}
+    th{background:#f2f5fb;text-align:left;}
+    caption{caption-side:top;text-align:left;font-weight:600;margin:.6rem 0;}
+    .kv table td:first-child{width:40%;white-space:nowrap;font-weight:600;}
+    .small{font-size:.95rem;color:var(--muted);}
+    .plantuml-figure{margin:1rem 0 1.25rem;}
+    .plantuml-figure img{max-width:100%;height:auto;display:block;margin:0 auto;}
+  </style>
+
+  <!-- MathJax: корректный рендер inline и display формул, пропускаем pre/code -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(','\\)'], ['$', '$']],
+        displayMath: [['\\[','\\]'], ['$$','$$']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script','noscript','style','textarea','pre','code']
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <!-- PlantUML encoder -->
+  <script src="https://unpkg.com/plantuml-encoder/dist/plantuml-encoder.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var blocks = document.querySelectorAll('pre.plantuml');
+      blocks.forEach(function (pre) {
+        var txt = pre.textContent.trim();
+        if (!txt.includes('@startuml')) return;
+        try {
+          var encoded = plantumlEncoder.encode(txt);
+          var imgUrl = "https://www.plantuml.com/plantuml/svg/" + encoded;
+          var fig = document.createElement('div');
+          fig.className = 'plantuml-figure';
+          var img = document.createElement('img');
+          img.alt = 'Диаграмма PlantUML';
+          img.src = imgUrl;
+          fig.appendChild(img);
+
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+          summary.textContent = 'Показать исходный код PlantUML';
+          details.appendChild(summary);
+          var codePre = document.createElement('pre');
+          codePre.className = 'mono';
+          codePre.textContent = txt;
+          details.appendChild(codePre);
+
+          var wrap = document.createElement('div');
+          wrap.appendChild(fig);
+          wrap.appendChild(details);
+          pre.replaceWith(wrap);
+        } catch (e) { console.error('PlantUML render error:', e); }
+      });
+    });
+  </script>
+</head>
+<body>
+  <main class="page">
+    <h1>Методические рекомендации</h1>
+
+    <h2>1. Жизненный цикл программного обеспечения (Software Development Life Cycle, SDLC)</h2>
+    <h3>1.1. Понятие и цель</h3>
+    <p>Жизненный цикл программного обеспечения — это совокупность процессов, охватывающих все стадии существования программного продукта: от идеи до вывода из эксплуатации.</p>
+    <p>Цель — систематизация разработки, обеспечение управляемости, прогнозируемости сроков и качества продукта.</p>
+    <hr class="sep" />
+
+    <h3>1.2. Основные этапы SDLC</h3>
+    <table>
+      <thead>
+        <tr><th>Этап</th><th>Цель</th><th>Основные результаты</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1. Анализ требований</td><td>Выявление потребностей пользователей и постановка задач</td><td>Техническое задание (ТЗ), спецификации требований</td></tr>
+        <tr><td>2. Проектирование</td><td>Разработка архитектуры и структуры системы</td><td>Диаграммы, модели данных, описание модулей</td></tr>
+        <tr><td>3. Реализация</td><td>Программирование и сборка системы</td><td>Исходный код, бинарные файлы</td></tr>
+        <tr><td>4. Тестирование</td><td>Проверка корректности и соответствия ТЗ</td><td>Тест-кейсы, отчёт о тестировании</td></tr>
+        <tr><td>5. Внедрение и сопровождение</td><td>Развёртывание, обучение, обновления</td><td>Руководство пользователя, эксплуатационные документы</td></tr>
+      </tbody>
+    </table>
+    <hr class="sep" />
+
+    <h3>1.3. Классические и современные модели жизненного цикла</h3>
+    <ul>
+      <li>Каскадная (Waterfall) — строгая последовательность этапов, без возврата.</li>
+      <li>Итеративная / Инкрементальная — создание продукта по частям (итерациям).</li>
+      <li>Спиральная — цикл разработки с анализом рисков и уточнением требований.</li>
+      <li>Agile / Scrum / Kanban — гибкие методологии, короткие спринты, постоянная обратная связь.</li>
+    </ul>
+    <hr class="sep" />
+
+    <h3>1.4. Пример визуализации итеративного подхода</h3>
+    <pre class="plantuml">
+@startuml
+start
+:Сбор требований;
+:Разработка архитектуры;
+repeat
+  :Реализация итерации (спринта);
+  :Тестирование функционала;
+  :Интеграция и демонстрация;
+repeat while (Требуется доработка?) is (да)
+:Подготовка релиза;
+stop
+@enduml
+    </pre>
+    <hr class="sep" />
+
+    <h3>1.5. Принципы модульной разработки</h3>
+    <ul>
+      <li>Разделение системы на независимые модули с минимальными связями.</li>
+      <li>Каждый модуль выполняет одну логическую функцию (Single Responsibility Principle).</li>
+      <li>Повторное использование и тестируемость компонентов.</li>
+      <li>Изоляция ошибок и лёгкость модификации.</li>
+    </ul>
+
+    <h2>2. Принципы проектирования информационных систем</h2>
+    <h3>2.1. Многоуровневая архитектура</h3>
+    <p>Современные приложения строятся по принципу трёхуровневой архитектуры:</p>
+    <ol>
+      <li><strong>Уровень данных (Data Layer)</strong> — базы данных, хранилища, файловые системы.</li>
+      <li><strong>Бизнес-логика (Business Layer)</strong> — обработка данных, расчёты, правила.</li>
+      <li><strong>Представление (Presentation Layer)</strong> — интерфейс пользователя, API, отчёты.</li>
+    </ol>
+    <pre class="plantuml">
+@startuml
+package "Presentation" {
+  [Web UI]
+  [Mobile App]
+}
+package "Business Logic" {
+  [Service Layer]
+  [Controllers]
+}
+package "Data Access" {
+  [Repositories]
+  [Database]
+}
+
+[Web UI] --> [Service Layer]
+[Mobile App] --> [Service Layer]
+[Service Layer] --> [Repositories]
+[Repositories] --> [Database]
+@enduml
+    </pre>
+    <hr class="sep" />
+
+    <h3>2.2. Архитектура клиент–серверных приложений</h3>
+    <ul>
+      <li>Клиент инициирует запросы (например, через браузер или мобильное приложение).</li>
+      <li>Сервер обрабатывает запросы и возвращает ответы в виде JSON, XML и др.</li>
+      <li>Компоненты могут быть распределены по различным машинам.</li>
+    </ul>
+    <div class="small">PlantUML (component):</div>
+    <pre class="plantuml">
+@startuml
+actor User
+node "Web Client" {
+  component "Browser UI"
+}
+node "Server" {
+  component "API Controller"
+  component "Service Layer"
+}
+database "DB"
+
+User --> "Browser UI"
+"Browser UI" --> "API Controller" : HTTP/HTTPS
+"API Controller" --> "Service Layer"
+"Service Layer" --> DB : SQL / ORM
+@enduml
+    </pre>
+    <hr class="sep" />
+
+    <h3>2.3. Интерфейсы взаимодействия модулей</h3>
+    <ul>
+      <li>Все модули должны обмениваться данными через интерфейсы и контракты.</li>
+      <li>При изменении одного модуля остальные остаются работоспособными.</li>
+      <li>Пример: <span class="mono">IDataModule</span>, <span class="mono">ILogicModule</span>, <span class="mono">IReportModule</span>.</li>
+    </ul>
+
+    <h2>3. Объектно-ориентированное программирование (ООП)</h2>
+    <h3>3.1. Основные принципы</h3>
+    <table>
+      <thead>
+        <tr><th>Принцип</th><th>Суть</th><th>Пример</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Класс</td><td>Шаблон, описывающий структуру данных и поведение</td><td><span class="mono">class Equipment { }</span></td></tr>
+        <tr><td>Объект</td><td>Конкретный экземпляр класса</td><td><span class="mono">Equipment item = new Equipment();</span></td></tr>
+        <tr><td>Инкапсуляция</td><td>Сокрытие деталей реализации</td><td><span class="mono">private string status;</span></td></tr>
+        <tr><td>Наследование</td><td>Повторное использование кода</td><td><span class="mono">class Laptop : Equipment { }</span></td></tr>
+        <tr><td>Полиморфизм</td><td>Разные реализации одного интерфейса</td><td><span class="mono">IReport.Generate()</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>3.2. Диаграмма классов (пример)</h3>
+    <pre class="plantuml">
+@startuml
+class Equipment {
+  +Id: int
+  +Name: string
+  +InventoryNumber: string
+  +Status: string
+  +GetInfo(): string
+}
+
+class Laptop {
+  +BatteryLife: int
+}
+
+class Projector {
+  +Resolution: string
+}
+
+Equipment <|-- Laptop
+Equipment <|-- Projector
+@enduml
+    </pre>
+
+    <h3>3.3. Диаграмма прецедентов (use case)</h3>
+    <pre class="plantuml">
+@startuml
+actor "Оператор" as User
+rectangle "Система учёта оборудования" {
+  usecase "Добавить запись"
+  usecase "Удалить запись"
+  usecase "Сформировать отчёт"
+}
+User --> "Добавить запись"
+User --> "Удалить запись"
+User --> "Сформировать отчёт"
+@enduml
+    </pre>
+
+    <h2>4. Моделирование и документирование систем</h2>
+    <h3>4.1. Инструменты моделирования</h3>
+    <ul>
+      <li>PlantUML — текстовое описание UML-диаграмм.</li>
+      <li>Draw.io, Lucidchart, Miro, StarUML — визуальные редакторы.</li>
+      <li>Mermaid.js — встроенная визуализация для HTML/Markdown.</li>
+    </ul>
+    <h3>4.2. Документирование</h3>
+    <p>Документация проекта должна включать:</p>
+    <ul>
+      <li>техническое задание (ТЗ);</li>
+      <li>описание архитектуры;</li>
+      <li>схемы UML и ER-диаграммы;</li>
+      <li>таблицы данных и форматы обмена;</li>
+      <li>инструкции по запуску и эксплуатации.</li>
+    </ul>
+
+    <h2>5. Работа с данными и файлами</h2>
+    <h3>5.1. Форматы данных</h3>
+    <table>
+      <thead>
+        <tr><th>Формат</th><th>Особенности</th><th>Пример</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>JSON</td><td>лёгкий, читаемый, используется для API</td><td><span class="mono">{ "id":1, "name":"Laptop" }</span></td></tr>
+        <tr><td>XML</td><td>строгий, совместимый со многими системами</td><td><span class="mono">&lt;device&gt;&lt;id&gt;1&lt;/id&gt;&lt;/device&gt;</span></td></tr>
+        <tr><td>CSV</td><td>табличные данные</td><td><span class="mono">id,name,price</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>5.2. Пример сериализации в C#</h3>
+    <pre>
+var obj = new Equipment { Id = 1, Name = "Ноутбук", Status = "Активен" };
+string json = JsonSerializer.Serialize(obj);
+File.WriteAllText("data.json", json);
+    </pre>
+
+    <h2>6. Инструментальные средства разработки</h2>
+    <table>
+      <thead>
+        <tr><th>Категория</th><th>Примеры</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>IDE / Редакторы</td><td>Visual Studio, VS Code, PyCharm</td></tr>
+        <tr><td>Контроль версий</td><td>Git, GitHub, GitLab</td></tr>
+        <tr><td>Менеджеры зависимостей</td><td>NuGet, pip, npm</td></tr>
+        <tr><td>Системы сборки</td><td>MSBuild, Make, Gradle</td></tr>
+        <tr><td>Тестирование API</td><td>Postman, Swagger</td></tr>
+        <tr><td>CI/CD</td><td>GitHub Actions, GitLab CI, Jenkins</td></tr>
+      </tbody>
+    </table>
+
+    <h2>7. Методы тестирования</h2>
+    <h3>7.1. Классификация тестов</h3>
+    <ul>
+      <li>Модульное (Unit) — проверка отдельных функций или классов.</li>
+      <li>Интеграционное — взаимодействие модулей.</li>
+      <li>Функциональное — проверка пользовательских сценариев.</li>
+      <li>Регрессионное — повторное тестирование после изменений.</li>
+      <li>Нагрузочное — проверка производительности.</li>
+    </ul>
+
+    <h3>7.2. Пример таблицы тест-кейсов</h3>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Тест</th><th>Вход</th><th>Ожидаемый результат</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>TC-01</td><td>Добавление оборудования</td><td>Name="Ноутбук"</td><td>Успешное добавление</td></tr>
+        <tr><td>TC-02</td><td>Удаление несуществующей записи</td><td>ID=999</td><td>Ошибка 404</td></tr>
+        <tr><td>TC-03</td><td>Сохранение JSON</td><td>Коллекция 10 объектов</td><td>Файл создан</td></tr>
+      </tbody>
+    </table>
+
+    <h2>8. Оценка качества и надёжности ПО</h2>
+    <h3>8.1. Критерии по ISO/IEC 25010</h3>
+    <table>
+      <thead>
+        <tr><th>Категория</th><th>Критерий</th><th>Пример оценки</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Функциональность</td><td>Полнота функций</td><td>Реализованы все требования ТЗ</td></tr>
+        <tr><td>Надёжность</td><td>Обработка ошибок</td><td>Исключения перехватываются корректно</td></tr>
+        <tr><td>Удобство</td><td>UX, навигация</td><td>Интерфейс интуитивно понятен</td></tr>
+        <tr><td>Производительность</td><td>Время отклика</td><td>&lt; 300 мс при 1000 запросах</td></tr>
+        <tr><td>Безопасность</td><td>Доступ, валидация</td><td>Реализованы права ролей</td></tr>
+        <tr><td>Поддерживаемость</td><td>Структура кода</td><td>Комментарии, единый стиль</td></tr>
+      </tbody>
+    </table>
+
+    <h3>8.2. Пример шкалы оценки качества</h3>
+    <table>
+      <thead>
+        <tr><th>Балл</th><th>Уровень</th><th>Пояснение</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>0–1</td><td>Низкий</td><td>Частые ошибки, нет тестов</td></tr>
+        <tr><td>2–3</td><td>Средний</td><td>Работает, но не оптимально</td></tr>
+        <tr><td>4–5</td><td>Высокий</td><td>Надёжная и стабильная система</td></tr>
+      </tbody>
+    </table>
+
+    <h2>9. Экономическая эффективность информационной системы</h2>
+    <h3>9.1. Основные формулы</h3>
+    <p><strong>ROI (окупаемость инвестиций)</strong></p>
+    <p>\[
+      \mathrm{ROI} = \frac{\text{Доход} - \text{Затраты}}{\text{Затраты}} \times 100\%\,
+    \]</p>
+
+    <p><strong>NPV (чистая текущая стоимость)</strong></p>
+    <p>\[
+      \mathrm{NPV} = \sum_{t=1}^{n} \frac{CF_t}{(1+r)^t} - I_0\,,
+    \]</p>
+    <p class="small">где \(CF_t\) — денежный поток в период \(t\), \(r\) — ставка дисконтирования, \(I_0\) — первоначальные инвестиции.</p>
+
+    <p><strong>PP (Payback Period) — срок окупаемости</strong></p>
+    <p>Для равномерных потоков: \(\mathrm{PP} = \dfrac{I_0}{\overline{CF}}\).<br/>
+    Для неравномерных — минимальный \(T\), при котором кумулятивный дисконтированный поток \(\sum_{t=1}^{T}\dfrac{CF_t}{(1+r)^t} \ge I_0\).</p>
+
+    <h3>9.2. Пример расчёта ROI и NPV</h3>
+    <div class="kv">
+      <table>
+        <tbody>
+          <tr><td>Инвестиции</td><td>500&nbsp;000 ₽</td></tr>
+          <tr><td>Доход (год 1)</td><td>220&nbsp;000 ₽</td></tr>
+          <tr><td>Доход (год 2)</td><td>300&nbsp;000 ₽</td></tr>
+          <tr><td>Доход (год 3)</td><td>350&nbsp;000 ₽</td></tr>
+          <tr><td>Ставка r</td><td>10%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>NPV:</strong></p>
+    <p>\[
+      \mathrm{NPV} = \frac{220\,000}{1.1} + \frac{300\,000}{1.1^{2}} + \frac{350\,000}{1.1^{3}} - 500\,000
+      \approx 204\,000 + 247\,000 + 263\,000 - 500\,000
+      = 214\,000\,.
+    \]</p>
+    <p class="small">\(\mathrm{NPV} > 0\) ⇒ проект экономически целесообразен.</p>
+
+    <p><strong>ROI:</strong></p>
+    <p>\[
+      \mathrm{ROI} = \frac{870\,000 - 500\,000}{500\,000} \times 100\% = 74\%\,.
+    \]</p>
+
+    <p><strong>Срок окупаемости:</strong> проект окупается примерно к середине второго года.</p>
+
+    <h2>10. Документирование программных продуктов</h2>
+    <h3>10.1. Состав документации</h3>
+    <ol>
+      <li>Техническое задание (ТЗ)</li>
+      <li>Руководство пользователя</li>
+      <li>Руководство программиста</li>
+      <li>Отчёт о тестировании</li>
+      <li>Экономическое обоснование</li>
+      <li>Паспорт ИС и инструкция по эксплуатации</li>
+    </ol>
+
+    <h3>10.2. Пример структуры ТЗ</h3>
+    <ol>
+      <li>Назначение и цель системы</li>
+      <li>Требования к функциональности</li>
+      <li>Нефункциональные требования (скорость, надёжность, интерфейс)</li>
+      <li>Архитектура и структура данных</li>
+      <li>Форматы входных/выходных файлов</li>
+      <li>Методы тестирования и приёмки</li>
+      <li>Требования к документированию и сопровождению</li>
+    </ol>
+
+    <h3>10.3. Пример фрагмента руководства пользователя</h3>
+    <p>
+      <strong>Название:</strong> Система учёта оборудования<br/>
+      <strong>Назначение:</strong> учёт, выдача и возврат техники.<br/>
+      <strong>Запуск:</strong> открыть LabInventory.exe → выбрать «Просмотр» → кнопка «Добавить».<br/>
+      <strong>Сохранение данных:</strong> JSON-файл создаётся автоматически при выходе.
+    </p>
+
+    <h2>11. Пример единой UML-схемы взаимодействия</h2>
+    <pre class="plantuml">
+@startuml
+actor User
+participant UI
+participant Logic
+participant Data
+database JSON
+
+User -> UI: Ввод данных
+UI -> Logic: Validate()
+Logic -> Data: SaveToFile()
+Data -> JSON: write()
+JSON --> Data: ok
+Data --> Logic: result
+Logic --> UI: OK message
+UI --> User: Подтверждение
+@enduml
+    </pre>
+  </main>
+</body>
+</html>

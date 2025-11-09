@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Выполнение задания — многомодульное приложение (C#, JSON, UML)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { --text:#111; --muted:#555; --border:#cfd6e4; --bg:#fff; --accent:#0b5cff; }
+    html,body{background:var(--bg);color:var(--text);}
+    body{margin:0;font-family:"Inter","Segoe UI",Roboto,Arial,Helvetica,sans-serif;line-height:1.6;font-size:16px;}
+    .page{max-width:980px;margin:32px auto 96px;padding:0 20px;}
+    h1,h2,h3{line-height:1.25;margin:1.2em 0 .5em;}
+    h1{font-size:1.9rem;}
+    h2{font-size:1.4rem;border-left:4px solid var(--accent);padding-left:.6rem;}
+    h3{font-size:1.15rem;color:var(--muted);}
+    p{margin:.6em 0;}
+    ul,ol{margin:.4em 0 .8em 1.2em;}
+    hr.sep{border:0;height:1px;background:linear-gradient(to right,transparent,var(--border),transparent);margin:20px 0;}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;}
+    pre,code,kbd,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;}
+    pre{background:#f7f9fc;border:1px solid var(--border);border-radius:8px;padding:12px 14px;overflow:auto;margin:.8rem 0 1rem;white-space:pre;}
+    table{border-collapse:collapse;width:100%;margin:.6rem 0 1rem;table-layout:auto;}
+    th,td{border:1px solid var(--border);padding:.55rem .6rem;vertical-align:top;}
+    th{background:#f2f5fb;text-align:left;}
+    .plantuml-figure{margin:1rem 0 1.25rem;}
+    .plantuml-figure img{max-width:100%;height:auto;display:block;margin:0 auto;}
+    .kp{background:#f9fbff;border-left:4px solid var(--accent);padding:.75rem .9rem;margin:1rem 0;}
+    .muted{color:var(--muted);}
+    a{color:#0b5cff;text-decoration:none;} a:hover{text-decoration:underline;}
+  </style>
+
+  <!-- PlantUML encoder (клиентский рендер в <img> через публичный сервер) -->
+  <script src="https://unpkg.com/plantuml-encoder/dist/plantuml-encoder.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var blocks = document.querySelectorAll('pre.plantuml');
+      blocks.forEach(function (pre) {
+        var txt = pre.textContent.trim();
+        if (!txt.includes('@startuml')) return;
+        try {
+          var encoded = plantumlEncoder.encode(txt);
+          var imgUrl = "https://www.plantuml.com/plantuml/svg/" + encoded;
+          var fig = document.createElement('div');
+          fig.className = 'plantuml-figure';
+          var img = document.createElement('img');
+          img.alt = 'Диаграмма PlantUML';
+          img.src = imgUrl;
+          fig.appendChild(img);
+
+          var details = document.createElement('details');
+          var summary = document.createElement('summary');
+          summary.textContent = 'Показать исходный код PlantUML';
+          details.appendChild(summary);
+          var codePre = document.createElement('pre');
+          codePre.className = 'mono';
+          codePre.textContent = txt;
+          details.appendChild(codePre);
+
+          var wrap = document.createElement('div');
+          wrap.appendChild(fig);
+          wrap.appendChild(details);
+          pre.replaceWith(wrap);
+        } catch (e) { console.error('PlantUML render error:', e); }
+      });
+    });
+  </script>
+</head>
+<body>
+<main class="page">
+  <h1>Выполнение задания</h1>
+
+  <h2>Описания задания</h2>
+  <ol>
+    <li>Спроектировать и реализовать многомодульное приложение, демонстрирующее навыки:
+      <ul>
+        <li>управления процессом разработки;</li>
+        <li>программирования отдельных модулей;</li>
+        <li>тестирования и документирования информационной системы.</li>
+      </ul>
+    </li>
+    <li>Выбрать предметную область.</li>
+    <li>Определить цели и функции будущего программного продукта, включая:
+      <ul>
+        <li>назначение системы и ожидаемый результат её использования;</li>
+        <li>основные задачи и функциональные возможности;</li>
+        <li>категории пользователей и сценарии работы.</li>
+      </ul>
+    </li>
+    <li>Разработать архитектуру приложения с разделением на логические модули:
+      <ul>
+        <li>модуль хранения данных (файлы JSON или встроенная база данных);</li>
+        <li>модуль бизнес-логики (обработка, поиск, фильтрация, расчёты);</li>
+        <li>модуль интерфейса или отчётности (ввод, отображение, экспорт данных).</li>
+      </ul>
+    </li>
+    <li>Создать UML-диаграммы, отражающие структуру и взаимодействие компонентов:
+      <ul>
+        <li>диаграмму классов;</li>
+        <li>диаграмму взаимодействия (последовательности или компонентов).</li>
+      </ul>
+    </li>
+    <li>Реализовать программный код в выбранной среде разработки:
+      <ul>
+        <li>Visual Studio</li>
+        <li>использовать формат обмена данными JSON или встроенную СУБД;</li>
+        <li>обеспечить корректное взаимодействие модулей и обработку ошибок.</li>
+      </ul>
+    </li>
+  </ol>
+
+  <h2>0. Предварительные требования</h2>
+  <ul>
+    <li>Установлен .NET SDK 6+ (<span class="mono">dotnet --version</span>).</li>
+    <li>Редактор: Visual Studio 2022 / VS Code.</li>
+    <li>Базовые знания C#, ООП, JSON, UML.</li>
+    <li>Git (рекомендовано): <span class="mono">git init</span>, первый коммит после шага 1.</li>
+  </ul>
+  <hr class="sep"/>
+
+  <h2>1. Создать проект и базовую структуру</h2>
+  <h3>1.1. Инициализация проекта</h3>
+  <pre class="mono">dotnet new console -n IntegrationApp
+cd IntegrationApp
+mkdir Models Modules Docs</pre>
+
+  <h3>1.2. Структура папок (целевой вид)</h3>
+  <pre class="mono">IntegrationApp/
+├── Program.cs
+├── IntegrationApp.csproj
+├── Models/
+│   └── Domain.cs
+├── Modules/
+│   ├── InputModule.cs
+│   ├── StorageModule.cs
+│   └── ReportModule.cs
+└── Docs/
+    ├── components.puml
+    └── classes.puml</pre>
+
+  <div class="kp"><strong>Контрольная точка:</strong> проект компилируется <span class="mono">dotnet build</span>.</div>
+  <hr class="sep"/>
+
+  <h2>2. Спроектировать архитектуру (UML → код)</h2>
+  <h3>2.1. Диаграмма компонентов (PlantUML)</h3>
+  <pre class="plantuml">@startuml
+skinparam packageStyle rectangle
+title IntegrationApp — Диаграмма компонентов
+
+package "IntegrationApp" {
+  [Program] --> [InputModule]
+  [Program] --> [StorageModule]
+  [Program] --> [ReportModule]
+
+  [InputModule] ..> [Models]
+  [StorageModule] ..> [Models]
+  [ReportModule] ..> [Models]
+}
+@enduml</pre>
+
+  <h3>2.2. Диаграмма классов (PlantUML)</h3>
+  <pre class="plantuml">@startuml
+class TaskItem {
+  +Title : string
+  +Due : DateTime
+  +Description : string
+  +ToString() : string
+}
+
+class StorageModule {
+  -_filePath : string
+  +Load() : List&lt;TaskItem&gt;
+  +Save(List&lt;TaskItem&gt;) : void
+}
+
+class InputModule {
+  +ReadTask() : TaskItem
+}
+
+class ReportModule {
+  +ShowUpcoming(List&lt;TaskItem&gt;, int hours=24) : void
+}
+
+StorageModule ..> TaskItem
+InputModule ..> TaskItem
+ReportModule ..> TaskItem
+@enduml</pre>
+
+  <div class="kp">Контрольная точка: схемы согласованы с ТЗ: есть минимум три логических модуля (ввод, хранение JSON, отчёт/уведомления).</div>
+  <hr class="sep"/>
+
+  <h2>3. Описать доменную модель (Models)</h2>
+  <p><span class="mono">Models/Domain.cs</span></p>
+  <pre class="mono">namespace IntegrationApp.Models;
+
+public class TaskItem
+{
+    public string Title { get; set; } = string.Empty;
+    public DateTime Due { get; set; }
+    public string Description { get; set; } = string.Empty;
+
+    public override string ToString() =&gt; $"{Title} — {Due:g} — {Description}";
+}</pre>
+  <div class="kp">Контрольная точка: класс компилируется, отражает сущность предметной области.</div>
+  <hr class="sep"/>
+
+  <h2>4. Реализовать модуль хранения JSON (StorageModule)</h2>
+  <p><span class="mono">Modules/StorageModule.cs</span></p>
+  <pre class="mono">using System.Text.Json;
+using IntegrationApp.Models;
+
+namespace IntegrationApp.Modules;
+
+public class StorageModule
+{
+    private readonly string _filePath;
+    private readonly JsonSerializerOptions _opts = new() { WriteIndented = true };
+
+    public StorageModule(string filePath = "tasks.json")
+        =&gt; _filePath = filePath;
+
+    public List&lt;TaskItem&gt; Load()
+    {
+        if (!File.Exists(_filePath)) return new List&lt;TaskItem&gt;();
+        var json = File.ReadAllText(_filePath);
+        return JsonSerializer.Deserialize&lt;List&lt;TaskItem&gt;&gt;(json) ?? new List&lt;TaskItem&gt;();
+    }
+
+    public void Save(List&lt;TaskItem&gt; tasks)
+    {
+        var json = JsonSerializer.Serialize(tasks, _opts);
+        File.WriteAllText(_filePath, json);
+    }
+}</pre>
+  <div class="kp">Контрольная точка: можно вручную создать <span class="mono">tasks.json</span>, проверить чтение/запись.</div>
+  <hr class="sep"/>
+
+  <h2>5. Реализовать модуль ввода с валидацией (InputModule)</h2>
+  <p><span class="mono">Modules/InputModule.cs</span></p>
+  <pre class="mono">using IntegrationApp.Models;
+
+namespace IntegrationApp.Modules;
+
+public static class InputModule
+{
+    public static TaskItem ReadTask()
+    {
+        Console.Write("Название: ");
+        var title = (Console.ReadLine() ?? "").Trim();
+
+        DateTime due;
+        while (true)
+        {
+            Console.Write("Срок (yyyy-MM-dd HH:mm): ");
+            if (DateTime.TryParse(Console.ReadLine(), out due)) break;
+            Console.WriteLine("Некорректная дата/время. Повторите.");
+        }
+
+        Console.Write("Описание: ");
+        var desc = (Console.ReadLine() ?? "").Trim();
+
+        return new TaskItem { Title = title, Due = due, Description = desc };
+    }
+}</pre>
+  <div class="kp">Контрольная точка: ввести задачу, получить корректный объект <span class="mono">TaskItem</span>.</div>
+  <hr class="sep"/>
+
+  <h2>6. Реализовать модуль отчётов/уведомлений (ReportModule)</h2>
+  <p><span class="mono">Modules/ReportModule.cs</span></p>
+  <pre class="mono">using IntegrationApp.Models;
+
+namespace IntegrationApp.Modules;
+
+public static class ReportModule
+{
+    public static void ShowUpcoming(List&lt;TaskItem&gt; tasks, int hours = 24)
+    {
+        var now = DateTime.Now;
+        var upcoming = tasks
+            .Where(t =&gt; t.Due &gt;= now &amp;&amp; t.Due &lt;= now.AddHours(hours))
+            .OrderBy(t =&gt; t.Due)
+            .ToList();
+
+        if (!upcoming.Any())
+        {
+            Console.WriteLine($"Нет задач в ближайшие {hours} часов.");
+            return;
+        }
+
+        Console.WriteLine($"Ближайшие задачи (&lt;= {hours} ч):");
+        foreach (var t in upcoming) Console.WriteLine("- " + t);
+    }
+}</pre>
+  <div class="kp">Контрольная точка: при наличии задач в интервале виден корректный список.</div>
+  <hr class="sep"/>
+
+  <h2>7. Собрать взаимодействие в Program.cs (интеграция модулей)</h2>
+  <p><span class="mono">Program.cs</span></p>
+  <pre class="mono">using IntegrationApp.Models;
+using IntegrationApp.Modules;
+
+Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+var storage = new StorageModule();
+var tasks = storage.Load();
+
+bool exit = false;
+while (!exit)
+{
+    Console.WriteLine("\n=== IntegrationApp ===");
+    Console.WriteLine("1. Добавить задачу");
+    Console.WriteLine("2. Показать ближайшие задачи (24 ч)");
+    Console.WriteLine("3. Сохранить и выйти");
+    Console.Write("Выбор: ");
+    var choice = Console.ReadLine();
+
+    try
+    {
+        switch (choice)
+        {
+            case "1":
+                var t = InputModule.ReadTask();
+                tasks.Add(t);
+                Console.WriteLine("Задача добавлена.");
+                break;
+            case "2":
+                ReportModule.ShowUpcoming(tasks, 24);
+                break;
+            case "3":
+                storage.Save(tasks);
+                Console.WriteLine("Сохранено. Выход...");
+                exit = true;
+                break;
+            default:
+                Console.WriteLine("Неизвестная команда.");
+                break;
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Ошибка: " + ex.Message);
+    }
+}</pre>
+  <div class="kp">Контрольная точка: приложение запускается <span class="mono">dotnet run</span>, добавляет задачи, сохраняет <span class="mono">tasks.json</span>.</div>
+  <hr class="sep"/>
+
+  <h2>8. Добавить обработку ошибок и логические проверки</h2>
+  <ul>
+    <li>В <span class="mono">StorageModule.Save/Load</span> уже есть базовая защита.</li>
+    <li>При вводе дат — повторный запрос.</li>
+    <li>Добавьте доп. проверки: пустое название, дата в прошлом и т. п.</li>
+  </ul>
+  <pre class="mono">if (string.IsNullOrWhiteSpace(title)) throw new ArgumentException("Название не может быть пустым");
+if (due &lt; DateTime.Now) Console.WriteLine("Внимание: срок в прошлом.");</pre>
+  <div class="kp">Контрольная точка: негативные сценарии не «роняют» программу.</div>
+  <hr class="sep"/>
+
+  <h2>9. Простые интеграционные тесты (без фреймворка)</h2>
+  <p>Создайте вспомогательный метод для автопроверки связок «ввод→хранение→отчёт»:</p>
+  <p class="mono muted">Program.cs (временный блок)</p>
+  <pre class="mono">static void IntegrationSmokeTest()
+{
+    var storage = new StorageModule("test.json");
+    var list = new List&lt;TaskItem&gt;
+    {
+        new() { Title="Тест", Due = DateTime.Now.AddHours(1), Description="Smoke" }
+    };
+    storage.Save(list);
+    var read = storage.Load();
+    ReportModule.ShowUpcoming(read, 2);
+    File.Delete("test.json");
+}
+// Вызов один раз вручную:
+// IntegrationSmokeTest();</pre>
+  <div class="kp">Контрольная точка: тест подтверждает корректную связку модулей.
+    <br>(При желании используйте MSTest/xUnit, но для практики достаточно «дымового» теста.)</div>
+  <hr class="sep"/>
+
+  <h2>10. Документация (отчёт и схемы)</h2>
+  <h3>10.1. Что включить в отчёт</h3>
+  <ol>
+    <li>Описание архитектуры: роли модулей, принципы модульности, пространства имён.</li>
+    <li>UML-схемы: компоненты, классы (см. шаг 2).</li>
+    <li>Ключевые фрагменты кода (по модулям) с краткими пояснениями.</li>
+    <li>Тестирование: сценарии, результаты, скриншоты запуска.</li>
+    <li>Выводы и перспективы развития (валидация, GUI, БД и т. п.).</li>
+  </ol>
+
+  <h3>10.2. Пример описания интерфейсов взаимодействия</h3>
+  <ul>
+    <li><span class="mono">Program → InputModule:</span> <span class="mono">TaskItem ReadTask()</span></li>
+    <li><span class="mono">Program → StorageModule:</span> <span class="mono">List&lt;TaskItem&gt; Load()</span>, <span class="mono">void Save(List&lt;TaskItem&gt;)</span></li>
+    <li><span class="mono">Program → ReportModule:</span> <span class="mono">void ShowUpcoming(List&lt;TaskItem&gt;, int)</span></li>
+  </ul>
+
+  <p>Пример тестового проекта: <a href="https://github.com/OlgaKraven/PP.PM.05-testProject.git" target="_blank" rel="noopener">github.com/OlgaKraven/PP.PM.05-testProject.git</a></p>
+
+</main>
+</body>
+</html>
